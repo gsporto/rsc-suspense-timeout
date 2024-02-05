@@ -1,14 +1,14 @@
 import { Suspense } from "react";
 
 function fetchUsername() {
-  return new Promise((resolve) => {
+  return new Promise<string>((resolve) => {
     setTimeout(() => {
       resolve("Hello World!");
     }, 500);
   });
 }
 
-function race(promise: Promise<unknown>) {
+function race(promise: Promise<string>) {
   return Promise.any([
     promise,
     new Promise((resolve) => {
@@ -19,20 +19,17 @@ function race(promise: Promise<unknown>) {
   ]);
 }
 
-function ComponentBase({ username }: { username: any }) {
+async function ComponentBase({ promise }: { promise: Promise<string> }) {
+  const username = await promise;
   return <p>{username}</p>;
 }
 
-function SuspenseComponent({ username }: { username: any }) {
+export default async function Home() {
+  const promise = fetchUsername();
+  await race(promise);
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <ComponentBase username={username} />
+      <ComponentBase promise={promise} />
     </Suspense>
   );
-}
-
-export default async function Home() {
-  const username = fetchUsername();
-  await race(username);
-  return <SuspenseComponent username={username}/>;
 }
